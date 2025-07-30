@@ -18,16 +18,20 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
-      rate_to_usd: {
-        type: Sequelize.FLOAT,
+      to_currency_code: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      to_currency_rate: {
+        type: Sequelize.DECIMAL(20, 8),
         allowNull: false,
       },
       start_date: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
         allowNull: false,
       },
       end_date: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
         allowNull: true,
       },
       createdAt: Sequelize.DATE,
@@ -35,7 +39,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface) {
+  async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('CurrencyRates');
   },
 };

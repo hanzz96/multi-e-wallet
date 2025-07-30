@@ -109,7 +109,7 @@ export const getWalletTotalBalance = async (
         if (!wallet) {
             return next(new AppError("Wallet not found", 404));
         }
-
+        
         const displayCurrencyRate = await Currencies.findOne({
             where: { code: displayCurrency },
         });
