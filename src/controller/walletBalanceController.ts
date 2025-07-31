@@ -8,24 +8,23 @@ import { responsePayload } from '../utils/response';
 
 export const createWalletBalance = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { walletId, currencyCode, initialAmount = 0 } = req.body;
+    const { wallet_id, currency_code, initial_amount = 0 } = req.body;
 
-    if (!walletId || !currencyCode) {
+    if (!wallet_id || !currency_code) {
       return next(new AppError('walletId and currencyCode are required', 400));
     }
-    const wallet = await Wallet.findByPk(walletId);
+    const wallet = await Wallet.findByPk(wallet_id);
     if (!wallet) {
       return next(new AppError('Wallet not found', 404));
     }
 
-    const currency = await Currencies.findOne({ where: { code: currencyCode } });
+    const currency = await Currencies.findOne({ where: { code: currency_code } });
     if (!currency) {
       return next(new AppError('Currency not found', 404));
     }
 
-    console.log(walletId, currencyCode);
     const existingBalance = await WalletBalance.findOne({
-      where: { wallet_id: walletId, currency_code: currencyCode },
+      where: { wallet_id: wallet_id, currency_code: currency_code },
     });
 
     if (existingBalance) {
@@ -33,9 +32,9 @@ export const createWalletBalance = async (req: Request, res: Response, next: Nex
     }
 
     const balance = await WalletBalance.create({
-      wallet_id: walletId,
-      currency_code: currencyCode,
-      amount: initialAmount,
+      wallet_id: wallet_id,
+      currency_code: currency_code,
+      amount: initial_amount,
     });
 
     return responsePayload(res, 201, {
