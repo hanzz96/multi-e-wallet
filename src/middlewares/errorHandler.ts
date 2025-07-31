@@ -15,6 +15,7 @@ const handleValidationErrorDB = (err: any) => {
 
 const handleJWTError = () => new AppError('Invalid token, please login again!', 401);
 const handleJWTExpiredError = () => new AppError('Your token is expired, please login again.', 401);
+const handleLockError = () => new AppError('Please try again later.', 409);
 
 const sendErrorDev = (err: any, res: Response) => {
   res.status(err.statusCode).json({
@@ -27,6 +28,7 @@ const sendErrorDev = (err: any, res: Response) => {
 
 const sendErrorProd = (err: any, res: Response) => {
   if (err.isOperational) {
+    console.error('ERROR PROD :', err);
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
@@ -52,7 +54,7 @@ export const globalErrorHandler = (
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
-    let errorOverride = { ...err };
+    let errorOverride = err;
 
     if (err.name === 'SequelizeUniqueConstraintError') {
       errorOverride = handleDuplicateFieldsDB(err);
@@ -68,6 +70,10 @@ export const globalErrorHandler = (
 
     if (err.name === 'TokenExpiredError') {
       errorOverride = handleJWTExpiredError();
+    }
+
+    if( err.name === 'LockError') {
+      errorOverride = handleLockError();
     }
 
     sendErrorProd(errorOverride, res);

@@ -8,6 +8,7 @@ import { globalErrorHandler } from './src/middlewares/errorHandler';
 import walletRoutes from './src/routes/walletRoutes';
 import walletBalanceRoutes from './src/routes/walletBalanceRoutes';
 import transactionRoutes from './src/routes/transactionRoutes';
+import redis from './src/lib/redis';
 
 dotenv.config();
 const app = express();
@@ -20,6 +21,16 @@ app.use(express.json());
 // DB Connection
 connectDB();
 
+// Ping redis
+(async () => {
+    try {
+      const pong = await redis.ping();
+      console.log(`[Redis] PING: ${pong}`);
+    } catch (error) {
+      console.error('[Redis] Unable to connect to Redis:', error);
+      process.exit(1); // Optional: crash app if Redis is critical
+    }
+  })();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/wallets', walletRoutes);
