@@ -7,6 +7,7 @@ import { AppError } from '../utils/appError';
 import { responseMessage } from '../utils/response';
 import Decimal from 'decimal.js';
 import Wallet from '../models/Wallet';
+import { acquireLock } from '../utils/redisLockManager';
 
 const getLatestRate = async (from: string, to: string) => {
   if (from === to) return 1;
@@ -24,23 +25,27 @@ const getLatestRate = async (from: string, to: string) => {
 
 // Deposit
 export const deposit = async (req: Request, res: Response, next: NextFunction) => {
-  const { walletBalanceId, amount } = req.body;
+    
+  const { wallet_balance_id, amount } = req.body;
   const t = await sequelize.transaction();
+  const lockKey = `lock:wallet-balance:${wallet_balance_id}`;
   try {
-    const walletBalance = await WalletBalance.findByPk(walletBalanceId, { transaction: t });
+    const lock = await acquireLock(lockKey);
+    const walletBalance = await WalletBalance.findByPk(wallet_balance_id, { transaction: t });
     if (!walletBalance) throw new AppError('Wallet balance not found', 404);
     
     walletBalance.amount = new Decimal(walletBalance.amount).plus(amount).toNumber();
     await walletBalance.save({ transaction: t });
 
     await Transaction.create({
-      wallet_balance_id: walletBalanceId,
+      wallet_balance_id: wallet_balance_id,
       type: TransactionType.DEPOSIT,
       amount,
       rate_to: 1,
     }, { transaction: t });
 
     await t.commit();
+    await lock.release();
     return res.status(201).json(responseMessage('Deposit successful'));
   } catch (error) {
     await t.rollback();
@@ -53,7 +58,9 @@ export const withdraw = async (req: Request, res: Response, next: NextFunction) 
   const { wallet_balance_id, amount } = req.body;
 
   const t = await sequelize.transaction();
+  const lockKey = `lock:wallet-balance:${wallet_balance_id}`;
   try {
+    const lock = await acquireLock(lockKey);
     const walletBalance = await WalletBalance.findByPk(wallet_balance_id, { transaction: t });
 
     if (!walletBalance) throw new AppError('Wallet balance not found', 404);
@@ -64,12 +71,13 @@ export const withdraw = async (req: Request, res: Response, next: NextFunction) 
 
     await Transaction.create({
       wallet_balance_id,
-      type: TransactionType.WITHDRAWAL,
+      type: TransactionType.WITHDRAW,
       amount,
       rate_to: 1,
     }, { transaction: t });
 
     await t.commit();
+    await lock.release();
     return res.status(201).json(responseMessage('Withdrawal successful'));
   } catch (error) {
     await t.rollback();
@@ -82,7 +90,9 @@ export const payForProduct = async (req: Request, res: Response, next: NextFunct
   const { wallet_balance_id, amount } = req.body;
 
   const t = await sequelize.transaction();
+  const lockKey = `lock:wallet-balance:${wallet_balance_id}`;
   try {
+    const lock = await acquireLock(lockKey);
     const walletBalance = await WalletBalance.findByPk(wallet_balance_id, { transaction: t });
     if (!walletBalance) throw new AppError('Wallet balance not found', 404);
     if (walletBalance.amount < amount) throw new AppError('Insufficient funds', 400);
@@ -98,6 +108,7 @@ export const payForProduct = async (req: Request, res: Response, next: NextFunct
     }, { transaction: t });
 
     await t.commit();
+    await lock.release();
     return res.status(201).json(responseMessage('Payment successful'));
   } catch (error) {
     await t.rollback();
@@ -108,10 +119,12 @@ export const payForProduct = async (req: Request, res: Response, next: NextFunct
 // Transfer
 export const transfer = async (req: Request, res: Response, next: NextFunction) => {
   const { from_wallet_balance_id, to_wallet_balance_id, amount } = req.body;
-
+    
   const t = await sequelize.transaction();
+  const lockFromKey = `lock:wallet-balance:${from_wallet_balance_id}`;
+  const lockToKey = `lock:wallet-balance:${to_wallet_balance_id}`;
   try {
-
+    const locks = await acquireLock([lockFromKey, lockToKey]);
     const fromBalance = await WalletBalance.findByPk(from_wallet_balance_id, { transaction: t });
     const toBalance = await WalletBalance.findByPk(to_wallet_balance_id, { transaction: t });
 
@@ -142,6 +155,7 @@ export const transfer = async (req: Request, res: Response, next: NextFunction) 
     }, { transaction: t });
 
     await t.commit();
+    await locks.release();
     return res.status(201).json(responseMessage('Transfer successful'));
   } catch (error) {
     await t.rollback();

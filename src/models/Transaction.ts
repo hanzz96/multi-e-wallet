@@ -4,7 +4,7 @@ import WalletBalance from './WalletBalance';
 
 export enum TransactionType {
   DEPOSIT = 'deposit',
-  WITHDRAWAL = 'withdrawal', 
+  WITHDRAW = 'withdraw', 
   PAYMENT = 'payment',
   TRANSFER = 'transfer'
 }
@@ -21,8 +21,8 @@ class Transaction extends Model {
   public wallet_balance_id!: number;
   public related_wallet_balance_id?: number;
   public amount!: number;
-  public type!: 'deposit' | 'withdrawal' | 'payment';
-  public status!: 'pending' | 'success' | 'failed';
+  public type!: TransactionType;
+  public status!: TransactionStatus;
   public note?: string;
   public rate_to?: number;
   public readonly createdAt!: Date;
