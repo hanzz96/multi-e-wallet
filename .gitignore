@@ -1,2 +1,4 @@
 postgres-data/
+redis-data/
 .env
+node_modules/

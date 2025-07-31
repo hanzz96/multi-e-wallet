@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "docs:generate": "node scripts/generate-docs.js",
+    "docs:serve": "npm run docs:generate && npx http-server docs -p 8080 -o",
+    "docs:export": "npm run docs:generate && echo 'Documentation exported to ./docs folder'"
   },
   "repository": {
     "type": "git",
@@ -21,6 +24,8 @@
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/morgan": "^1.9.10",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "decimal.js": "^10.6.0",
@@ -32,7 +37,9 @@
     "morgan": "^1.10.1",
     "pg": "^8.16.3",
     "redlock": "^5.0.0-beta.2",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

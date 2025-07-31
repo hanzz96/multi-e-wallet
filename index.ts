@@ -2,13 +2,16 @@ import express from 'express';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
 import authRoutes from './src/routes/authRoutes';
 import { connectDB } from './src/config/db';
 import { globalErrorHandler } from './src/middlewares/errorHandler';
+import { apiDocsMiddleware, apiUsageLogger } from './src/middlewares/apiDocsMiddleware';
 import walletRoutes from './src/routes/walletRoutes';
 import walletBalanceRoutes from './src/routes/walletBalanceRoutes';
 import transactionRoutes from './src/routes/transactionRoutes';
 import redis from './src/lib/redis';
+import { specs } from './src/config/swagger';
 
 dotenv.config();
 const app = express();
@@ -17,6 +20,8 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(apiDocsMiddleware);
+app.use(apiUsageLogger);
 
 // DB Connection
 connectDB();
@@ -31,6 +36,20 @@ connectDB();
       process.exit(1); // Optional: crash app if Redis is critical
     }
   })();
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'E-Wallet API Documentation',
+  customfavIcon: '/favicon.ico',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    filter: true,
+    showExtensions: true,
+    showCommonExtensions: true,
+  }
+}));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/wallets', walletRoutes);
