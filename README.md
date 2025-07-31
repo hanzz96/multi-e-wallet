@@ -89,7 +89,7 @@ New transaction types (e.g., LOYALTY, REFUND)
 
 📝 Auditability & Logging
 All transactions persisted with type, source, and related balance
-
+ 
 Future logging (e.g., Winston or external log aggregators) ready
 
 can trace operations for audit/compliance
