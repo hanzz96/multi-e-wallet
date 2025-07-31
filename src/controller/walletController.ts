@@ -4,6 +4,9 @@ import WalletBalance from "../models/WalletBalance";
 import Currencies from "../models/Currencies";
 import { AppError } from "../utils/appError";
 import { responseMessage, responsePayload } from "../utils/response";
+import CurrencyRate from "../models/CurrencyRate";
+import Decimal from "decimal.js";
+import { Op } from "sequelize";
 
 export const createWallet = async (
     req: Request,
@@ -19,7 +22,7 @@ export const createWallet = async (
         }
 
         const existingWallet = await Wallet.findOne({
-            where: { userId, name },
+            where: { user_id: userId, name },
         });
 
         if (existingWallet) {
@@ -39,97 +42,99 @@ export const createWallet = async (
     }
 };
 
-export const getWalletBalances = async (req: Request, res: Response, next: NextFunction) => {
+export const listWallets = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const walletId = parseInt(req.params.id);
-      if (isNaN(walletId)) {
-        return next(new AppError('Invalid wallet ID', 400));
+      const wallets = await Wallet.findAll({
+        where: { user_id: req.user.id },
+        include: [
+          {
+            model: WalletBalance,
+            include: [Currencies],
+          },
+        ],
+      });
+  
+      const result = wallets.map(wallet => ({
+        id: wallet.id,
+        name: wallet.name,
+        balances: wallet.WalletBalances?.map(balance => ({
+          id: balance.id,
+          currency: balance.currency_code,
+          amount: balance.amount.toString(),
+        })),
+      }));
+  
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  export const getWalletById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const wallet = await Wallet.findByPk(req.params.id, {
+        include: WalletBalance,
+      });
+
+      return responsePayload(res, 200, {
+        message: "Wallet fetched successfully",
+        wallet: wallet,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  export const getTotalWalletBalance = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const walletId = parseInt(req.params.id, 10);
+      const targetCurrency = req.query.currency as string;
+  
+      if (!targetCurrency) {
+        return next(new AppError('Target currency is required', 400));
       }
-      console.log(walletId,'walletId')
-      // Step 1: Check wallet existence
+  
       const wallet = await Wallet.findByPk(walletId);
-      console.log(wallet,'wallet')
       if (!wallet) {
         return next(new AppError('Wallet not found', 404));
       }
   
-      // Step 2: Get wallet balances
-      const balances = await WalletBalance.findAll({ where: { wallet_id: walletId } });
+      const balances = await WalletBalance.findAll({
+        where: { wallet_id: walletId },
+      });
   
-      // Step 3: Attach currency details to each balance
-      const detailedBalances = await Promise.all(
-        balances.map(async (balance) => {
-          const currency = await Currencies.findByPk(balance.currency_code);
-          return {
-            id: balance.id,
-            walletId: balance.wallet_id,
-            currencyId: balance.currency_code,
-            amount: balance.amount,
-            currency: currency ? {
-              id: currency.id,
-              code: currency.code,
-              rateToUSD: currency.rateToUSD,
-            } : null,
-          };
-        })
-      );
+      let total = 0;
   
-      return responsePayload(res, 200, {
-        wallet,
-        balances: detailedBalances,
+      for (const balance of balances) {
+        const fromCurrency = balance.currency_code;
+  
+        let rate = 1;
+  
+        if (fromCurrency !== targetCurrency) {
+          const rateRecord = await CurrencyRate.findOne({
+            where: {
+              currency_code: fromCurrency,
+              to_currency_code: targetCurrency,
+              end_date: { [Op.is]: null },
+            },
+          });
+  
+          if (!rateRecord) {
+            return res.status(400).json({ message: `Missing conversion rate from ${fromCurrency} to ${targetCurrency}` });
+          }
+  
+          rate = parseFloat(rateRecord.to_currency_rate.toString());
+        }
+  
+        total += balance.amount * rate;
+      }
+  
+      return res.json({
+        wallet_id: walletId,
+        currency: targetCurrency,
+        total_balance: parseFloat(total.toFixed(2)),
       });
     } catch (error) {
       next(error);
     }
   };
-  
-
-export const getWalletTotalBalance = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    try {
-        const walletId = parseInt(req.params.id);
-        const displayCurrency = (req.query.currency as string) || "USD";
-
-        if (!displayCurrency) {
-            return next(new AppError("Display currency required", 400));
-        }
-
-        const wallet = await Wallet.findByPk(walletId, {
-            include: [
-                {
-                    model: WalletBalance,
-                    include: [Currencies],
-                },
-            ],
-        });
-
-        if (!wallet) {
-            return next(new AppError("Wallet not found", 404));
-        }
-        
-        const displayCurrencyRate = await Currencies.findOne({
-            where: { code: displayCurrency },
-        });
-        if (!displayCurrencyRate) {
-            return next(new AppError("Invalid display currency", 400));
-        }
-
-        let total = 0;
-        for (const balance of wallet.WalletBalances) {
-            total +=
-                balance.amount *
-                (balance.Currencies.rateToUSD / displayCurrencyRate.rateToUSD);
-        }
-
-        return responsePayload(res, 200, {
-            walletId,
-            total,
-            currency: displayCurrency,
-        });
-    } catch (error) {
-        next(error);
-    }
-};

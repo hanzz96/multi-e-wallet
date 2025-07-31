@@ -1,0 +1,172 @@
+{
+    "info": {
+      "name": "Wallet Transactions With Auth (Env Ready)",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Login",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"yourpassword\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/auth/login",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "auth", "login"]
+          }
+        }
+      },
+      {
+        "name": "Create Wallet",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}",
+              "type": "text"
+            },
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": { "mode": "raw", "raw": "{\n  \"name\": \"Main Wallet\"\n}" },
+          "url": {
+            "raw": "{{baseUrl}}/api/wallets",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "wallets"]
+          }
+        }
+      },
+      {
+        "name": "Create Wallet Balance",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}",
+              "type": "text"
+            },
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"walletId\": 1,\n  \"currencyCode\": \"USD\",\n  \"amount\": 1000\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/wallet-balances",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "wallet-balances"]
+          }
+        }
+      },
+      {
+        "name": "Deposit",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}",
+              "type": "text"
+            },
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"walletBalanceId\": 1,\n  \"amount\": 500\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/transactions/deposit",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "transactions", "deposit"]
+          }
+        }
+      },
+      {
+        "name": "Withdraw",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}",
+              "type": "text"
+            },
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"walletBalanceId\": 1,\n  \"amount\": 200\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/transactions/withdraw",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "transactions", "withdraw"]
+          }
+        }
+      },
+      {
+        "name": "Payment",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}",
+              "type": "text"
+            },
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"walletBalanceId\": 1,\n  \"amount\": 50,\n  \"note\": \"Buy product A\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/transactions/payment",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "transactions", "payment"]
+          }
+        }
+      },
+      {
+        "name": "Transfer Between Wallets",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}",
+              "type": "text"
+            },
+            { "key": "Content-Type", "value": "application/json", "type": "text" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"fromWalletBalanceId\": 1,\n  \"toWalletBalanceId\": 2,\n  \"amount\": 100\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/transactions/transfer",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "transactions", "transfer"]
+          }
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:3000"
+      },
+      {
+        "key": "token",
+        "value": ""
+      }
+    ]
+  }
+  

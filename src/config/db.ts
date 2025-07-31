@@ -10,12 +10,15 @@ export const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
     dialect: 'postgres',
-    logging: false,
+    logging: process.env.NODE_ENV === 'development' ?(msg) => {
+      console.log(`[SQL] ${msg}`);
+    } : false,
   }
 );
 
 export const connectDB = async (): Promise<void> => {
   try {
+    console.log(process.env.NODE_ENV, 'node env');
     await sequelize.authenticate();
     console.log('Database connected');
   } catch (error) {

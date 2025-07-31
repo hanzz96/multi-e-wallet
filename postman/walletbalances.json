@@ -1,0 +1,41 @@
+{
+    "info": {
+      "name": "WalletBalance API",
+      "_postman_id": "d4d6f4f1-fac2-4d7c-9c53-f989e1ee0d7f",
+      "description": "Create a new WalletBalance (currency) inside an existing Wallet.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Create Wallet Balance",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer <your_token_here>",
+              "type": "text"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "type": "text"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"walletId\": 1,\n  \"currencyCode\": \"USD\",\n  \"initialAmount\": 100\n}"
+          },
+          "url": {
+            "raw": "http://localhost:5000/api/wallet-balances",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "5000",
+            "path": ["api", "wallet-balances"]
+          }
+        },
+        "response": []
+      }
+    ]
+  }
+  

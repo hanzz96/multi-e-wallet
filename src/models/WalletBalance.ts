@@ -6,14 +6,14 @@ import Currencies from './Currencies';
 class WalletBalance extends Model {
   public id!: number;
   public wallet_id!: number;
-  public currency_code!: number;
+  public currency_code!: string;
   public amount!: number;
 }
 
 WalletBalance.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },

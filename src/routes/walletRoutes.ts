@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createWallet, getWalletBalances, getWalletTotalBalance } from '../controller/walletController';
+import { createWallet, listWallets, getTotalWalletBalance, getWalletById } from '../controller/walletController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -9,11 +9,8 @@ router.use(protect);
 
 // POST /api/wallets
 router.post('/', createWallet);
-
-// GET /api/wallets/:id/balances
-router.get('/:id/balances', getWalletBalances);
-
-// GET /api/wallets/:id/total?currency=USD
-router.get('/:id/total', getWalletTotalBalance);
+router.get('/', listWallets);
+router.get('/:id', getWalletById);
+router.get('/:id/total-balance', getTotalWalletBalance);
 
 export default router;
