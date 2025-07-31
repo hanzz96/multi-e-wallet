@@ -4,8 +4,6 @@ This directory contains the generated API documentation for the E-Wallet system.
 
 ## 📁 Files
 
-- `openapi.json` - OpenAPI 3.0 specification file
-- `index.html` - Standalone HTML documentation viewer
 - `README.md` - This file
 
 ## 🚀 How to Use
@@ -13,23 +11,11 @@ This directory contains the generated API documentation for the E-Wallet system.
 ### Option 1: Interactive Documentation (Recommended)
 1. Start your development server: `npm run dev`
 2. Open your browser and go to: `http://localhost:5000/api-docs`
-3. This provides an interactive Swagger UI where you can:
-   - View all API endpoints
-   - Test API calls directly from the browser
-   - See request/response schemas
-   - Authenticate with JWT tokens
 
 ### Option 2: Static Documentation
 1. Generate static documentation: `npm run docs:generate`
 2. Open `docs/index.html` in your browser
 3. Or serve it locally: `npm run docs:serve`
-
-### Option 3: External Tools
-1. Generate the OpenAPI spec: `npm run docs:generate`
-2. Use external tools like:
-   - [Swagger Editor](https://editor.swagger.io/) - Upload `openapi.json`
-   - [Postman](https://www.postman.com/) - Import the OpenAPI spec
-   - [Insomnia](https://insomnia.rest/) - Import the OpenAPI spec
 
 ## 🔐 Authentication
 
@@ -62,30 +48,6 @@ Most endpoints require JWT authentication. To authenticate:
 - `POST /api/transactions/withdraw` - Withdraw money
 - `POST /api/transactions/payment` - Pay for product
 - `POST /api/transactions/transfer` - Transfer between wallets
-
-## 🔧 Development
-
-### Adding New Endpoints
-1. Add JSDoc comments to your route files using the `@swagger` annotation
-2. Follow the existing pattern in the route files
-3. Include request body schemas, parameters, and response examples
-4. Regenerate documentation: `npm run docs:generate`
-
-### Example JSDoc Comment
-```javascript
-/**
- * @swagger
- * /api/example:
- *   get:
- *     summary: Example endpoint
- *     tags: [Example]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Success
- */
-```
 
 ### Updating Documentation
 - Run `npm run docs:generate` to regenerate the OpenAPI spec
